@@ -3,7 +3,7 @@ import * as azure from "@pulumi/azure-native";
 
 // Configurations for the resources
 const config = new pulumi.Config();
-const resourceGroupName = "myResourceGroup";
+const resourceGroupName = "ResourceGroup";
 const region = "East US";
 
 // Create Resource Group
@@ -11,8 +11,21 @@ const resourceGroup = new azure.resources.ResourceGroup(resourceGroupName, {
     location: region,
 });
 
+// Create a Web Application Firewall Policy
+const wafPolicy = new azure.network.WebApplicationFirewallPolicy("wafPolicy", {
+    resourceGroupName: resourceGroup.name,
+    location: resourceGroup.location,
+    policyName: "example-waf-policy",
+    managedRules: {
+        managedRuleSets: [{
+            ruleSetType: "OWASP",
+            ruleSetVersion: "3.2",
+        }],
+    },
+});
+
 // Create the AKS Cluster
-const aksCluster = new azure.containerservice.ManagedCluster("myAksCluster", {
+const aksCluster = new azure.containerservice.ManagedCluster("AksCluster", {
     resourceGroupName: resourceGroup.name,
     location: region,
     kubernetesVersion: "1.21.2", // Choose the desired Kubernetes version
@@ -34,7 +47,7 @@ const aksCluster = new azure.containerservice.ManagedCluster("myAksCluster", {
 });
 
 // Create the Application Gateway with WAF
-const appGateway = new azure.network.ApplicationGateway("myAppGateway", {
+const appGateway = new azure.network.ApplicationGateway("AppGateway", {
     resourceGroupName: resourceGroup.name,
     location: region,
     sku: {
@@ -90,7 +103,7 @@ const appGateway = new azure.network.ApplicationGateway("myAppGateway", {
 });
 
 // Create Public IP for the Application Gateway
-const publicIP = new azure.network.PublicIPAddress("myPublicIP", {
+const publicIP = new azure.network.PublicIPAddress("PublicIP", {
     resourceGroupName: resourceGroup.name,
     location: region,
     publicIPAllocationMethod: "Dynamic",
