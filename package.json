@@ -1,0 +1,13 @@
+{
+    "name": "pulumi-aks",
+    "main": "index.ts",
+    "devDependencies": {
+        "@types/node": "^18",
+        "typescript": "^5.7.2"
+    },
+    "dependencies": {
+        "@pulumi/azure-native": "^2.88.0",
+        "@pulumi/kubernetes": "^4.21.1",
+        "@pulumi/pulumi": "^3.152.0"
+    }
+}
