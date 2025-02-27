@@ -4,15 +4,36 @@ import * as azure from "@pulumi/azure-native";
 // Configurations for the resources
 const config = new pulumi.Config();
 const resourceGroupName = "ResourceGroup";
-const region = "East US";
+const region = "uaenorth";
 
 // Create Resource Group
-const resourceGroup = new azure.resources.ResourceGroup(resourceGroupName, {
+const resourceGroup = new azure.resources.ResourceGroup("s6_ResourceGroup", {
     location: region,
 });
 
+// Create a Virtual Network
+const virtualNetwork = new azure.network.VirtualNetwork("s6_VNet", {
+    resourceGroupName: resourceGroup.name,
+    location: resourceGroup.location,
+    addressSpace: { addressPrefixes: ["10.0.0.0/16"] },
+});
+
+// Create a Subnet for the AKS Cluster
+const aksSubnet = new azure.network.Subnet("s6_aksSubnet", {
+    resourceGroupName: resourceGroup.name,
+    virtualNetworkName: virtualNetwork.name,
+    addressPrefix: "10.0.1.0/24",
+});
+
+// Create a Subnet for the Application Gateway
+const appGatewaySubnet = new azure.network.Subnet("s6_appGatewaySubnet", {
+    resourceGroupName: resourceGroup.name,
+    virtualNetworkName: virtualNetwork.name,
+    addressPrefix: "10.0.2.0/24",
+});
+
 // Create a Web Application Firewall Policy
-const wafPolicy = new azure.network.WebApplicationFirewallPolicy("wafPolicy", {
+const wafPolicy = new azure.network.WebApplicationFirewallPolicy("s6_wafPolicy", {
     resourceGroupName: resourceGroup.name,
     location: resourceGroup.location,
     policyName: "example-waf-policy",
@@ -25,7 +46,7 @@ const wafPolicy = new azure.network.WebApplicationFirewallPolicy("wafPolicy", {
 });
 
 // Create the AKS Cluster
-const aksCluster = new azure.containerservice.ManagedCluster("AksCluster", {
+const aksCluster = new azure.containerservice.ManagedCluster("s6_AksCluster", {
     resourceGroupName: resourceGroup.name,
     location: region,
     kubernetesVersion: "1.21.2", // Choose the desired Kubernetes version
@@ -47,7 +68,7 @@ const aksCluster = new azure.containerservice.ManagedCluster("AksCluster", {
 });
 
 // Create the Application Gateway with WAF
-const appGateway = new azure.network.ApplicationGateway("AppGateway", {
+const appGateway = new azure.network.ApplicationGateway("s6_AppGateway", {
     resourceGroupName: resourceGroup.name,
     location: region,
     sku: {
@@ -103,7 +124,7 @@ const appGateway = new azure.network.ApplicationGateway("AppGateway", {
 });
 
 // Create Public IP for the Application Gateway
-const publicIP = new azure.network.PublicIPAddress("PublicIP", {
+const publicIP = new azure.network.PublicIPAddress("s6_PublicIP", {
     resourceGroupName: resourceGroup.name,
     location: region,
     publicIPAllocationMethod: "Dynamic",
